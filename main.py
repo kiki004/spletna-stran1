@@ -15,13 +15,15 @@ def prijava():
 @app.route('/prijava-submit/')
 def prijava_submit():
     uporabnisko_ime = request.args.get("username")
+ 
     geslo = request.args.get("geslo")
     print(uporabnisko_ime, geslo)
 
     conn = sqlite3.connect("test.db")
     cursor = conn.cursor()
-    query = 'SELECT * FROM contacts WHERE first_name="'+uporabnisko_ime+'" AND last_name="'+geslo+'"'
-    cursor.execute(query)
+    query = "SELECT * FROM contacts WHERE first_name=? AND last_name=?" 
+    cursor.execute(query, (uporabnisko_ime, geslo))
+    geslo = geslo.replace("'"'", "janez").replace("'"'","marko") 
     result = cursor.fetchone()
     conn.close()
 
@@ -40,6 +42,17 @@ def registracija():
 def registracija_submit():
     uporabnisko_ime = request.args.get("username")
     geslo = request.args.get("geslo")
+    if not geslo or len(geslo) < 6:
+          return render_template("prijava.html", info_text="Geslo mora imeti vsaj 6 znakov")
+
+    lookup_command = 'SELECT * FROM CONTACTS WHERE first_name="'+uporabnisko_ime+'"' 
+    conn = sqlite3.connect("test.db")  
+    cursor = conn. cursor()
+    cursor.execute(lookup_command) 
+    result = cursor.fetchone() 
+    if result: 
+          conn.close() 
+          return "Uporabnisko ime ze obstaja"
 
     insert_command = 'INSERT INTO contacts(first_name, last_name) VALUES("'+uporabnisko_ime+'", "'+geslo+'");'
     print(insert_command)
