@@ -2,7 +2,12 @@ from flask import Flask, request, render_template, redirect, make_response
 import sqlite3
 import os
 
+
+
 app = Flask(__name__)
+
+def hash_password(geslo):
+    return len(geslo)
 
 @app.route('/')
 def index():
@@ -16,11 +21,11 @@ def prijava():
 def prijava_submit():
     uporabnisko_ime = request.args.get("username")
     geslo = request.args.get("geslo")
-    print(uporabnisko_ime, geslo)
 
     conn = sqlite3.connect("test.db")
     cursor = conn.cursor()
-    query = 'SELECT * FROM contacts WHERE first_name="'+uporabnisko_ime+'" AND last_name="'+geslo+'"'
+    geslo_hash = hash_password(geslo)
+    query = 'SELECT * FROM users WHERE username="'+uporabnisko_ime+'" AND password_hash='+str(geslo_hash)
     cursor.execute(query)
     result = cursor.fetchone()
     conn.close()
@@ -41,7 +46,8 @@ def registracija_submit():
     uporabnisko_ime = request.args.get("username")
     geslo = request.args.get("geslo")
 
-    insert_command = 'INSERT INTO contacts(first_name, last_name) VALUES("'+uporabnisko_ime+'", "'+geslo+'");'
+    geslo_hash = hash_password(geslo)
+    insert_command = 'INSERT INTO users(username, password_hash) VALUES("'+uporabnisko_ime+'", '+str(geslo_hash)+');'
     print(insert_command)
     conn = sqlite3.connect("test.db")
     cursor = conn.cursor()
@@ -76,6 +82,7 @@ def add_note_submit():
         return redirect("/prijava/")
 
     note_text = request.args.get("note")
+    note_text = note_text.replace("<", "")
 
     conn = sqlite3.connect("test.db")
     cursor = conn.cursor()
@@ -93,4 +100,3 @@ def odjava():
     return response
 
 app.run(debug=True)
-
